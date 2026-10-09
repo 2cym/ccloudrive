@@ -18,6 +18,8 @@ import { verifyPassword } from '@/lib/password';
  *    因为 Auth.js 的 Credentials 不写数据库 session。
  *    adapter 仍负责 users/accounts 持久化，role 等业务字段通过 jwt 回调注入。
  * 3. 密码用 Web Crypto PBKDF2（见 lib/password.ts），不使用 bcrypt 原生库。
+ * 4. secret 必须显式传入：AUTH_SECRET 存在 .dev.vars / wrangler secret 里，
+ *    只进 getCloudflareContext().env 而不进 process.env，NextAuth 自己读不到。
  */
 
 const credentialsSchema = z.object({
@@ -42,6 +44,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => {
     }),
 
     session: { strategy: 'jwt' },
+
+    // AUTH_SECRET 不在 process.env 里 —— 它来自 .dev.vars（本地）/ wrangler secret（生产），
+    // 这两条路径都只进 getCloudflareContext().env。而 NextAuth 默认只读
+    // process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET，不显式传入就会在
+    // assertConfig 阶段抛 MissingSecret，症状是 /api/auth/session、/providers、
+    // /csrf、/callback/credentials 全部 500（页面显示 "There was a problem with
+    // the server configuration"），而自定义的 /api/auth/login 却完全正常。
+    secret: getCloudflareEnv().AUTH_SECRET ?? process.env.AUTH_SECRET,
 
     pages: {
       signIn: '/login',

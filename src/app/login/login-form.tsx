@@ -35,9 +35,15 @@ import type { MeResponse } from '@/types/api';
 
 type FieldErrors = { email?: string; password?: string };
 
-export function LoginForm() {
+export function LoginForm({
+  initialEmail = '',
+  registered = false,
+}: {
+  initialEmail?: string;
+  registered?: boolean;
+}) {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -109,6 +115,13 @@ export function LoginForm() {
 
       <CardContent>
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          {registered ? (
+            <Alert>
+              <AlertTitle>注册成功</AlertTitle>
+              <AlertDescription>注册成功，请使用该账号登录。注册邮箱已为你填好。</AlertDescription>
+            </Alert>
+          ) : null}
+
           {formError ? (
             <Alert variant="destructive">
               <AlertTitle>登录失败</AlertTitle>

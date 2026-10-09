@@ -19,6 +19,9 @@ AUTH_URL = "http://localhost:8788"
 binding = "DB"
 database_name = "yuanshennb-db"
 database_id = "REPLACE_WITH_YOUR_D1_ID"
+# drizzle-kit 默认输出到 drizzle/migrations，而 wrangler 默认找 ./migrations，
+# 不显式指定就会报 "No migrations present at .../migrations"。
+migrations_dir = "drizzle/migrations"
 
 [[r2_buckets]]
 binding = "BUCKET"

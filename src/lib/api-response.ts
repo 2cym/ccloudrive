@@ -87,8 +87,20 @@ export function handler<TCtx = unknown>(
   };
 }
 
-/** 解析 JSON body，非法 JSON 直接抛 VALIDATION_ERROR */
+/**
+ * 解析 JSON body。
+ *
+ * 先校验 Content-Type：否则 `text/plain` 里塞的 JSON 也会被 req.json() 正常解析，
+ * 与「本接口只接受 application/json」的契约不符，也便于拦住跨站简单请求。
+ */
 export async function readJson<T = unknown>(req: Request): Promise<T> {
+  const contentType = req.headers.get('content-type') ?? '';
+  if (!contentType.toLowerCase().includes('application/json')) {
+    throw new AppError(
+      ErrorCode.VALIDATION_ERROR,
+      '请求体格式不正确（需要 application/json）',
+    );
+  }
   try {
     return (await req.json()) as T;
   } catch {

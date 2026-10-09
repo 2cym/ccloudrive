@@ -39,7 +39,7 @@ const registerSchema = z.object({
     .string()
     .min(1, '请输入邮箱')
     .email('邮箱格式不正确')
-    .max(254)
+    .max(254, '邮箱过长')
     .transform((v) => v.toLowerCase().trim()),
   password: z
     .string()
