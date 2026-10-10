@@ -13,7 +13,7 @@ binding = "ASSETS"
 [vars]
 NEXT_PUBLIC_APP_NAME = "浜戠洏"
 # 閮ㄧ讲鍚庢嬁鍒?workers.dev 鍦板潃鍐嶆敼锛屾敼鎴?https://yuanshennb.<浣犵殑瀛愬煙>.workers.dev
-AUTH_URL = "http://localhost:8788"
+AUTH_URL = "https://cym22.de5.net"
 
 [[d1_databases]]
 binding = "DB"
