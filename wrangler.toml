@@ -3,7 +3,7 @@ name = "ccloudrive"
 main = ".open-next/worker.js"
 compatibility_date = "2024-12-30"
 
-# Workers �?Node 文件系统；Next.js 运行时需�?nodejs_compat
+# Workers 鏃?Node 鏂囦欢绯荤粺锛汵ext.js 杩愯鏃堕渶瑕?nodejs_compat
 compatibility_flags = ["nodejs_compat"]
 
 [assets]
@@ -11,8 +11,8 @@ directory = ".open-next/assets"
 binding = "ASSETS"
 
 [vars]
-NEXT_PUBLIC_APP_NAME = "云盘"
-# 部署后拿�?workers.dev 地址再改，改�?https://yuanshennb.<你的子域>.workers.dev
+NEXT_PUBLIC_APP_NAME = "浜戠洏"
+# 閮ㄧ讲鍚庢嬁鍒?workers.dev 鍦板潃鍐嶆敼锛屾敼鎴?https://yuanshennb.<浣犵殑瀛愬煙>.workers.dev
 AUTH_URL = "http://localhost:8788"
 
 [[d1_databases]]
@@ -21,7 +21,7 @@ database_name = "ccloudrive-db"
 database_id = "f0d48672-a2ad-4ec6-bf4e-e408696f878f"
 migrations_dir = "drizzle/migrations"
 
-# R2 暂时不启用（需要绑卡开通，后续文件管理时再补）
+# R2 鏆傛椂涓嶅惎鐢紙闇€瑕佺粦鍗″紑閫氾紝鍚庣画鏂囦欢绠＄悊鏃跺啀琛ワ級
 # [[r2_buckets]]
 # binding = "BUCKET"
 # bucket_name = "yuanshennb-files"

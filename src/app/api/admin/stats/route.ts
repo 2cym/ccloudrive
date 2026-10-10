@@ -8,7 +8,10 @@ import { startOfShanghaiMonth, shanghaiMonthKey } from '@/lib/quota';
 /**
  * GET /api/admin/stats
  *
- * 管理后台统计概览�? * - 所有聚合使�?COUNT / SUM，禁�?SELECT *（保�?D1 每日读取配额�? * - 涉及 files 表的聚合只统�?is_trashed = 0 的活跃记�? * - D1 聚合可能返回字符串或 null，全部用 Number(x) || 0 转换
+ * 管理后台统计概览。
+ * - 所有聚合使用 COUNT / SUM，禁止 SELECT *（保护 D1 每日读取配额）
+ * - 涉及 files 表的聚合只统计 is_trashed = 0 的活跃记录
+ * - D1 聚合可能返回字符串或 null，全部用 Number(x) || 0 转换
  */
 
 
@@ -43,7 +46,7 @@ export const GET = handler(async () => {
   const disabledCount = Number(disabledCountRow[0]?.value) || 0;
   const todayNewUsers = Number(todayNewUsersRow[0]?.value) || 0;
 
-  // ---- 文件统计（只统计活跃，不含回收站�?----
+  // ---- 文件统计（只统计活跃，不含回收站） ----
   const [fileCountRow, folderCountRow, totalStorageRow, todayUploadRow, monthUploadRow] =
     await Promise.all([
       db
