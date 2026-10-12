@@ -27,6 +27,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){
+  if (typeof window === 'undefined') return;
+  var n = function(target, value) {
+    try { Object.defineProperty(target, 'name', { value: value, configurable: true }); } catch(e) {}
+    return target;
+  };
+  if (typeof window.__name === 'undefined') window.__name = n;
+  if (typeof globalThis.__name === 'undefined') globalThis.__name = n;
+})();`,
+          }}
+        />
+      </head>
       <body className="min-h-screen bg-background font-sans antialiased">
         <Providers>{children}</Providers>
       </body>
