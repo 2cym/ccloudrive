@@ -1,6 +1,6 @@
 'use client';
 
-import { LayoutGrid, List } from 'lucide-react';
+import { FolderPlus, LayoutGrid, List } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ type FilesToolbarProps = {
   onSortChange: (value: SortKey) => void;
   view: ViewMode;
   onViewChange: (value: ViewMode) => void;
+  onCreateFolder: () => void;
 };
 
 const sortOptions: { value: SortKey; label: string }[] = [
@@ -31,6 +32,7 @@ export default function FilesToolbar({
   onSortChange,
   view,
   onViewChange,
+  onCreateFolder,
 }: FilesToolbarProps) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row">
@@ -42,6 +44,9 @@ export default function FilesToolbar({
         className="sm:max-w-sm"
       />
       <div className="flex gap-2 sm:ml-auto">
+        <Button variant="outline" onClick={onCreateFolder}>
+          <FolderPlus />新建文件夹
+        </Button>
         <select
           aria-label="排序方式"
           className="h-10 rounded-md border border-input bg-background px-3 text-sm"

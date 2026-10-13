@@ -1,12 +1,15 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-import { api } from '@/lib/api-client';
+import { api, type ApiResult } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/components/ui/use-toast';
 
 import FileItems from './file-items';
+import FileOperationDialog, { type OperationMode } from './file-operation-dialog';
 import FilesToolbar from './files-toolbar';
 import type { Breadcrumb, FileItem, FileParent, FilesResponse, SortKey, ViewMode } from './drive-types';
 
@@ -32,7 +35,19 @@ export default function FilesBrowser({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(initialError);
   const [retry, setRetry] = useState(0);
+  const [operation, setOperation] = useState<{ mode: OperationMode; file: FileItem | null } | null>(null);
+  const [busy, setBusy] = useState(false);
   const firstRequest = useRef(true);
+  const router = useRouter();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (parent?.id || search.trim()) return;
+    setFiles(initialFiles);
+    setBreadcrumb(initialBreadcrumb);
+    setParent(initialParent);
+    setError(initialError);
+  }, [initialFiles, initialBreadcrumb, initialParent, initialError, parent?.id, search]);
 
   useEffect(() => {
     const savedView = window.localStorage.getItem('drive-view');
@@ -79,6 +94,59 @@ export default function FilesBrowser({
     window.localStorage.setItem('drive-view', nextView);
   };
 
+  const refreshAfterMutation = () => {
+    // router.refresh() 依赖 page.tsx 的服务端 fetch 使用 cache: 'no-store'。
+    router.refresh();
+    const params = new URLSearchParams({ sort });
+    if (search.trim()) params.set('search', search.trim());
+    else if (parent?.id) params.set('parentId', parent.id);
+    void api.get<FilesResponse>(`/api/files?${params.toString()}`).then((result) => {
+      if (result.ok) {
+        setFiles(result.data.files);
+        setBreadcrumb(result.data.breadcrumb);
+        setParent(result.data.parent);
+      } else {
+        toast({ title: '刷新列表失败', description: result.error.message, variant: 'destructive' });
+      }
+    });
+  };
+
+  const submitOperation = async (name: string) => {
+    if (!operation) return;
+    setBusy(true);
+    let result: ApiResult<unknown>;
+    if (operation.mode === 'create') {
+      result = await api.post<unknown>('/api/files/folder', { name, parentId: parent?.id ?? null });
+    } else if (operation.mode === 'rename' && operation.file) {
+      result = await api.patch<unknown>(`/api/files/${encodeURIComponent(operation.file.id)}`, { name });
+    } else if (operation.mode === 'delete' && operation.file) {
+      result = await api.delete<unknown>(`/api/files/${encodeURIComponent(operation.file.id)}`);
+    } else {
+      setBusy(false);
+      return;
+    }
+    setBusy(false);
+    if (!result.ok) {
+      toast({ title: '操作失败', description: result.error.message, variant: 'destructive' });
+      return;
+    }
+    setOperation(null);
+    toast({ title: '操作成功' });
+    refreshAfterMutation();
+  };
+
+  const toggleStar = async (file: FileItem) => {
+    const result = await api.patch<unknown>(`/api/files/${encodeURIComponent(file.id)}`, {
+      isStarred: !file.isStarred,
+    });
+    if (!result.ok) {
+      toast({ title: '操作失败', description: result.error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: file.isStarred ? '已取消收藏' : '已收藏' });
+    refreshAfterMutation();
+  };
+
   return (
     <section className="mx-auto max-w-6xl space-y-6">
       <div>
@@ -92,7 +160,7 @@ export default function FilesBrowser({
           ))}
         </nav>
       </div>
-      <FilesToolbar search={search} onSearch={setSearch} sort={sort} onSortChange={setSort} view={view} onViewChange={changeView} />
+      <FilesToolbar search={search} onSearch={setSearch} sort={sort} onSortChange={setSort} view={view} onViewChange={changeView} onCreateFolder={() => setOperation({ mode: 'create', file: null })} />
       {error ? (
         <div role="alert" className="rounded-lg border p-8 text-center">
           <p>{error}</p>
@@ -105,7 +173,24 @@ export default function FilesBrowser({
       ) : files.length === 0 ? (
         <div className="rounded-lg border border-dashed p-12 text-center text-muted-foreground">这里还没有文件</div>
       ) : (
-        <FileItems files={files} view={view} onOpenFolder={openFolder} />
+        <FileItems
+          files={files}
+          view={view}
+          onOpenFolder={openFolder}
+          onOpenFile={() => toast({ title: '暂不支持预览' })}
+          onRename={(file) => setOperation({ mode: 'rename', file })}
+          onToggleStar={toggleStar}
+          onDelete={(file) => setOperation({ mode: 'delete', file })}
+        />
+      )}
+      {operation && (
+        <FileOperationDialog
+          mode={operation.mode}
+          file={operation.file}
+          busy={busy}
+          onClose={() => setOperation(null)}
+          onSubmit={(name) => void submitOperation(name)}
+        />
       )}
     </section>
   );
